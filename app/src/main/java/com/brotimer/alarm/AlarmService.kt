@@ -17,6 +17,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -249,14 +250,24 @@ class AlarmService : Service() {
     private fun startVibrating() {
         val vib = vibrator() ?: return
         runCatching {
-            val pattern = longArrayOf(0, 700, 800)
-            vib.vibrate(
-                VibrationEffect.createWaveform(pattern, 0),
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build(),
-            )
+            // Repeat from index 0 = vibrate until cancelled.
+            val effect = VibrationEffect.createWaveform(longArrayOf(0, 700, 800), 0)
+            // Declaring alarm usage is what lets the vibration through Do Not Disturb.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                vib.vibrate(
+                    effect,
+                    VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM),
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                vib.vibrate(
+                    effect,
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build(),
+                )
+            }
         }
     }
 
