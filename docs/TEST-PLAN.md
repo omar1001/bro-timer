@@ -21,8 +21,8 @@ Verified so far on Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`, 202
 
 | | Check |
 |---|---|
-| ⬜ | First launch asks for notifications; allow it |
-| ⬜ | Setup tab (gear icon) shows **OK** on all four rows |
+| ✅ | First launch asks for notifications; allowed |
+| ⚠️ | Setup tab shows **OK** for notifications, full-screen alarms and exact alarms. **Battery optimisation is still ON** — press "Turn off battery optimisation" |
 | ⬜ | HyperOS by hand: **Autostart ON**, **Display pop-up windows while running in background ON**, **Battery saver → No restrictions**, app locked in Recents |
 
 ⚠️ Until those four HyperOS items are done, everything below can fail for reasons that are not
@@ -71,7 +71,7 @@ Then put the sleep length back to 8 h 30 min.
 
 | | Check |
 |---|---|
-| ⬜ | Timer `tea`, 30 s → rings with the same full-screen alarm as an interval alarm |
+| ✅ | A 3-minute timer `Tea` fired **exactly** at its due time. Log: `fired type=timer id=6` → `ringing 6 'Tea' for up to 300s`. The notification carried the label and working **Snooze 10m** / **Stop** actions. Sound started (no `no usable ringtone` in the log). It appeared as a heads-up banner rather than taking over the screen **because the phone was unlocked and in use** — that is Android's documented full-screen-intent behaviour, not a fault. The locked-screen case is section 2. |
 | ⬜ | Pause mid-countdown → the number stops; Start → it resumes from there |
 | ⬜ | Reset → back to the full duration |
 | ⬜ | After it rings, the timer shows its full duration again, ready to re-run |

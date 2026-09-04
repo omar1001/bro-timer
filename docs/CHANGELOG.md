@@ -142,7 +142,47 @@ Installed to Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`.
 
   `device_idle=--` and `battery_saver=--` are the `setAlarmClock` exemption working as designed.
 
-**Not yet hardware-verified** — these need waiting for a ring and are listed in
-[`TEST-PLAN.md`](TEST-PLAN.md): the full-screen ring over the lock screen, Snooze, Stop, the
-5-minute give-up, sound selection, sleep mode start/end, timer ringing, stopwatch survival across
-app-kill, and reboot recovery. Code-verified is not hardware-verified.
+### The ring path, partly verified while taking screenshots
+
+To produce README screenshots, demo data was injected by force-stopping the app and writing
+`shared_prefs/brotimer.xml` through `adb shell run-as com.brotimer tee ...`. Omar's own data was
+backed up first and restored afterwards, and `dumpsys alarm` was re-checked to confirm exactly one
+pending alarm (his) remained.
+
+⚠️ **`run-as` writes must not spawn a shell.** `run-as com.brotimer sh -c 'cat > ...'` fails with
+*Permission denied* on HyperOS — the spawned `sh` loses the app's SELinux context. `run-as
+com.brotimer tee <relative path>` works, because no shell is involved and `run-as` sets the app
+home as cwd. Relative paths only; absolute `/data/data/...` is denied.
+
+One of the demo timers reached zero during the session, which verified the ring path for free:
+
+```
+BroTimer: fired type=timer id=6
+BroTimer: ringing 6 'Tea' for up to 300s
+```
+
+The notification appeared with the label `Tea` and working **Snooze 10m** and **Stop** actions
+(captured in `docs/screenshots/ringing.png`). Sound started — `playSound` logs
+`no usable ringtone` if every candidate fails, and it did not.
+
+It appeared as a **heads-up banner rather than taking over the screen**. That is correct: Android
+only launches a full-screen intent's activity when the device is locked or idle; while the user is
+actively using an unlocked phone it is shown as a banner. The locked-screen case is therefore still
+untested.
+
+The Setup screen also reported **notifications, full-screen alarms and exact alarms all OK**, with
+**battery optimisation still ON** — the one stock-Android item left for Omar to press.
+
+`adb shell am start` **cannot** launch `AlarmActivity` for a screenshot: it is `exported="false"`
+and the shell user is refused on Android 16. The only way to see that screen is a real alarm on a
+locked phone.
+
+**Still not hardware-verified** — listed in [`TEST-PLAN.md`](TEST-PLAN.md): the full-screen ring
+over the **lock screen**, Snooze actually returning, Stop, the 5-minute give-up, sound selection,
+sleep mode start/end, stopwatch survival across app-kill, and reboot recovery. Code-verified is not
+hardware-verified.
+
+### Published
+
+`github.com/omar1001/bro-timer` — **public**, at Omar's instruction, and deliberately **not pinned**
+to his profile (his six pinned repos were checked and left untouched).
