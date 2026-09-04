@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose paints its own colours; this theme only controls the window itself, so it stays
+         on the platform Material theme and pulls in no XML component library. -->
+    <style name="Theme.BroTimer" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background_light</item>
+    </style>
+</resources>

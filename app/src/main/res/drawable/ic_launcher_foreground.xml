@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive-icon foreground: 108x108 viewport, artwork kept inside the central 72x72 safe zone
+     so no launcher mask can crop it. Pure vector, so the icon needs no PNG assets at any density. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- clock face -->
+    <path
+        android:pathData="M30,54 a24,24 0 1,0 48,0 a24,24 0 1,0 -48,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round" />
+
+    <!-- minute hand -->
+    <path
+        android:pathData="M54,54 L54,38"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round" />
+
+    <!-- hour hand -->
+    <path
+        android:pathData="M54,54 L66,60"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round" />
+
+    <!-- alarm bell ears, so it reads as an alarm clock and not a plain watch -->
+    <path
+        android:pathData="M34,32 L26,24"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M74,32 L82,24"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round" />
+</vector>

@@ -1,0 +1,33 @@
+# Vendored toolchain, if it is ever copied in here (~873 MB). Never commit it.
+.tools/
+
+# Gradle's TMP, redirected here by tools.ps1 (see the comment in that file)
+.gradle-tmp/
+
+# Build outputs
+app/build/
+build/
+*.apk
+*.aab
+
+# Gradle / Kotlin local state
+.gradle/
+.kotlin/
+local.properties
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Claude Code local session state
+.claude/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Logs
+*.log
+logcat*.txt
