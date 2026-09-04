@@ -5,6 +5,21 @@ sound, over the lock screen, with Snooze and Stop — plus labelled stopwatches 
 
 Built for a Xiaomi phone running Android 16 / HyperOS, sideloaded over USB with `adb`.
 
+## Screenshots
+
+Real captures from the phone it was built for.
+
+| Interval alarms | Stopwatches | Timers | Setup |
+|---|---|---|---|
+| ![Alarms tab](docs/screenshots/alarms.png) | ![Stopwatch tab](docs/screenshots/stopwatch.png) | ![Timers tab](docs/screenshots/timers.png) | ![Setup screen](docs/screenshots/setup.png) |
+| Each alarm shows its interval and exactly when it fires next. | Labelled, and they keep counting while the app is closed. | Labelled, and they ring like a real alarm at zero. | Settings, plus the checklist that decides whether alarms work. |
+
+A timer going off — the alarm gives you **Snooze** and **Stop** wherever you are:
+
+![Alarm ringing](docs/screenshots/ringing.png)
+
+When the phone is **locked**, this takes over the whole screen instead of appearing as a banner.
+
 ## What it does
 
 **Interval alarms.** Set one to "every 2 h 30 min" with the text you want to see, and it rings on a
