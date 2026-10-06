@@ -1,7 +1,11 @@
 package com.brotimer.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings as AndroidSettings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +39,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,14 +53,18 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -64,6 +75,7 @@ import com.brotimer.data.SoundLibrary
 import com.brotimer.data.Store
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * A sound that just arrived through Android's Share menu (WhatsApp, Telegram, Files…), already
@@ -110,7 +122,10 @@ fun App() {
 
     BackHandler(enabled = showSetup) { showSetup = false }
 
+    val snackbar = remember { SnackbarHostState() }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = {
@@ -129,6 +144,7 @@ fun App() {
                 },
                 actions = {
                     if (!showSetup) {
+                        AlwaysOnChip(now = now, snackbar = snackbar)
                         IconButton(onClick = { showSetup = true }) {
                             Icon(Icons.Filled.Settings, contentDescription = "Setup and settings")
                         }
@@ -180,6 +196,75 @@ fun App() {
     }
 
     IncomingSoundDialog()
+}
+
+/**
+ * The quick switch for "Always on display" (the `stayOnScreen` setting), right where Omar sees it
+ * the moment he opens the app — his request, 2026-10-06: "it shows a tiny red mark, so when you
+ * see it you know it is on". Red dot = on and working; amber dot = on but "Display over other
+ * apps" is missing; grey ring = off.
+ */
+@Composable
+private fun AlwaysOnChip(now: Long, snackbar: SnackbarHostState) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val settings by Store.settings.collectAsState()
+    // Re-checked once a second, so returning from the permission screen updates the dot.
+    val overlayOk = remember(now / 1000) { AndroidSettings.canDrawOverlays(context) }
+    val on = settings.stayOnScreen
+    val dot = when {
+        !on -> Color.Transparent
+        overlayOk -> Color(0xFFE53935)
+        else -> Color(0xFFF4BF48)
+    }
+
+    FilterChip(
+        selected = on,
+        onClick = {
+            val turnOn = !on
+            Store.putSettings(Store.settings.value.copy(stayOnScreen = turnOn))
+            if (turnOn && !overlayOk) {
+                runCatching {
+                    context.startActivity(
+                        Intent(AndroidSettings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                            .setData(Uri.parse("package:${context.packageName}"))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }
+            }
+            scope.launch {
+                snackbar.currentSnackbarData?.dismiss()
+                snackbar.showSnackbar(
+                    when {
+                        !turnOn -> "Always on display is off: a ringing alarm shows as a banner that slides away."
+                        overlayOk -> "Always on display is on: Snooze and Stop stay on screen while an alarm rings."
+                        else -> "Almost there: allow “Display over other apps” for BroTimer."
+                    }
+                )
+            }
+        },
+        label = { Text("Always on") },
+        leadingIcon = {
+            Box(
+                Modifier
+                    .size(9.dp)
+                    .clip(CircleShape)
+                    .background(dot)
+                    .border(
+                        width = 1.5.dp,
+                        color = if (on) dot else MaterialTheme.colorScheme.outline,
+                        shape = CircleShape,
+                    ),
+            )
+        },
+        modifier = Modifier.semantics {
+            contentDescription = when {
+                !on -> "Always on display: off"
+                overlayOk -> "Always on display: on"
+                else -> "Always on display: on, but needs Display over other apps"
+            }
+        },
+    )
 }
 
 /**

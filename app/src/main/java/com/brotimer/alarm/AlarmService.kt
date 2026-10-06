@@ -1,5 +1,6 @@
 package com.brotimer.alarm
 
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -72,6 +73,16 @@ class AlarmService : Service() {
          */
         private const val MAX_COUNTED_RING_SECONDS = 30 * 60
 
+        /**
+         * The live instance, so [AlarmActivity] can hide the floating card while the full alarm
+         * screen is up (both have their buttons at the bottom) and bring it back when you leave.
+         * Same process, main thread only; cleared in onDestroy. A direct call instead of a
+         * startService intent, which Android refuses from the background.
+         */
+        @Volatile
+        internal var running: AlarmService? = null
+            private set
+
         fun ring(
             context: Context,
             id: Int,
@@ -131,6 +142,20 @@ class AlarmService : Service() {
     private var plays = 0
     private var lastPosition = 0
     private var clipMs = 0
+
+    private val overlay by lazy {
+        RingOverlay(
+            service = this,
+            onSnooze = { end(End.SNOOZED) },
+            onStop = { end(End.STOPPED) },
+            onOpen = { openAlarmScreen() },
+        )
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        running = this
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -203,6 +228,8 @@ class AlarmService : Service() {
         }
         giveUp = task
         handler.postDelayed(task, capSeconds * 1000L)
+
+        showFloatingCardIfInUse()
 
         Log.i(
             Scheduler.TAG,
@@ -389,6 +416,43 @@ class AlarmService : Service() {
         runCatching {
             getSystemService(NotificationManager::class.java)?.notify(NOTIF_ID, buildNotification(r))
         }
+        if (overlay.isShowing) overlay.update(r.label, statusText(r), Store.settings.value.snoozeMinutes)
+    }
+
+    // -- stay-on-screen card -----------------------------------------------------------------
+
+    /**
+     * Only while the phone is awake, unlocked and in use: that is exactly when Android shows the
+     * alarm as a banner that slides away. Asleep or locked, the full-screen alarm shows instead.
+     */
+    private fun shouldFloat(): Boolean {
+        if (!Store.settings.value.stayOnScreen || !overlay.canShow()) return false
+        val awake = getSystemService(PowerManager::class.java)?.isInteractive == true
+        val locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true
+        return awake && !locked
+    }
+
+    private fun showFloatingCardIfInUse() {
+        val r = ring ?: return
+        if (shouldFloat()) overlay.show(r.label, statusText(r), Store.settings.value.snoozeMinutes)
+    }
+
+    /** Called by [AlarmActivity] while it is on screen: its own buttons are where the card sits. */
+    internal fun hideFloatingCard() = overlay.hide()
+
+    /** Called by [AlarmActivity] when you leave it while the alarm is still ringing. */
+    internal fun restoreFloatingCard() = showFloatingCardIfInUse()
+
+    private fun openAlarmScreen() {
+        // Start the activity *before* removing the card: a visible window of ours is what lets
+        // Android open an activity from a background service.
+        runCatching {
+            startActivity(
+                Intent(this, AlarmActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            )
+        }.onFailure { Log.w(Scheduler.TAG, "could not open the alarm screen from the card", it) }
+        overlay.hide()
     }
 
     // -- vibration ---------------------------------------------------------------------------
@@ -456,6 +520,7 @@ class AlarmService : Service() {
         wrapWatch = null
         stopSound()
         stopVibrating()
+        overlay.hide()
         ring = null
 
         if (r != null) {
@@ -504,10 +569,12 @@ class AlarmService : Service() {
     }
 
     override fun onDestroy() {
+        if (running === this) running = null
         giveUp?.let(handler::removeCallbacks)
         wrapWatch?.let(handler::removeCallbacks)
         stopSound()
         stopVibrating()
+        overlay.hide()
         releaseWakeLock()
         if (ring != null) {
             ring = null

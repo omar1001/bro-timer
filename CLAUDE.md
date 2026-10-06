@@ -45,6 +45,10 @@ Android 16 / API 36, HyperOS `V816`. Sideloaded over USB with `adb`; never publi
     puts the PIN pad over the alarm, covering Stop. Verified fixed on the locked phone 2026-10-06.
 11. **Vibration off is overridden when the sound cannot play** — a ring with neither would wake
     nobody.
+12. **"Always on display"** (`stayOnScreen`, [`RingOverlay`](app/src/main/java/com/brotimer/alarm/RingOverlay.kt)):
+    the Snooze/Stop card floats over other apps **only while ringing on an unlocked phone in use**.
+    Omar chose the red mark *inside the app* (the top-bar chip), **not** a dot floating over all
+    apps — do not add a permanent overlay without asking.
 
 ## Folder map
 
@@ -53,7 +57,7 @@ Android 16 / API 36, HyperOS `V816`. Sideloaded over USB with `adb`; never publi
 | `app/src/main/java/com/brotimer/` | All the code |
 | ` ├─ model/Models.kt` | The 4 stored types, the grid maths (`nextFireAt`), JSON codecs |
 | ` ├─ data/` | `Store` (singleton over `SharedPreferences`, `StateFlow`s), `SoundLibrary` (import/copy, names, durations, phone-audio query) |
-| ` ├─ alarm/` | `Scheduler` (every `AlarmManager` call), `AlarmReceiver`, `AlarmService` (sound, counting, come-backs), `RingState` (what is ringing, as a flow), `AlarmActivity` (ring screen), `BootReceiver`, `SleepMode` |
+| ` ├─ alarm/` | `Scheduler` (every `AlarmManager` call), `AlarmReceiver`, `AlarmService` (sound, counting, come-backs), `RingState` (what is ringing, as a flow), `AlarmActivity` (ring screen), `RingOverlay` (floating Snooze/Stop card), `BootReceiver`, `SleepMode` |
 | ` └─ ui/` | `App` (tabs, sleep card, share dialog), the three list screens + their full-screen editors, `SoundPicker`, `EditorParts`, `SetupScreen`, `AppIcons` (own vector icons), `Common`, `Format`, `Theme` |
 | `app/src/main/res/` | Vector-only icons, two themes (day/night), strings |
 | `*.ps1` | `tools.ps1` (toolchain resolution), `build.ps1`, `install.ps1` |
@@ -104,6 +108,7 @@ Full dated entries live in [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — the rows
 
 | Date | Headline | Read before touching |
 |---|---|---|
+| 2026-10-06 | v1.2 "Always on display": Snooze/Stop card floats over other apps while ringing on an unlocked phone; "Always on" chip with a red dot on the main screen | `alarm/RingOverlay`, `AlarmService.shouldFloat`, `AlarmActivity` onResume/onStop |
 | 2026-10-06 | v1.1 released on GitHub with the debug-signed APK; version shown in Setup; README download badge | Releasing, signing, `versionCode` |
 | 2026-10-06 | Play a sound N times, come back if unanswered, own sounds (Zedge/phone audio/share, copied in), vibration switch, visual redesign; lock-screen alarm verified with PIN | `alarm/AlarmService`, `alarm/AlarmActivity`, `data/SoundLibrary`, any sound or ring-ending logic, `FullScreenDialog` |
 | 2026-09-04 | Initial build: interval alarms on a fixed grid, sleep mode, stopwatches, timers, borrowed toolchain | Everything — this is the whole app |

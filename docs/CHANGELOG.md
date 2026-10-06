@@ -5,6 +5,53 @@ Newest first.
 
 ---
 
+## 2026-10-06 — "Always on display": Snooze/Stop stay on screen while ringing (v1.2)
+
+### What Omar asked for
+
+> "when I hear it and then go to pause or stop I find it disappear and then I have to scroll in
+> the notifications to find it and expand it to see the buttons — I want a static always-on to
+> directly click on."
+
+While the phone is **unlocked and in use**, Android shows a ringing alarm as a heads-up banner
+(only a locked or sleeping phone gets the full-screen alarm), and HyperOS slides that banner away
+after a few seconds. Then: "also add [the] always-on option when I am opening the program, [with] a
+tiny red mark, so when you see it you know it is on". Asked which red mark he meant (a dot floating
+over all apps, or one inside the app), he chose **inside the app**.
+
+### What was built
+
+- **`alarm/RingOverlay.kt`** (new) — a card with the alarm text, "Playing 3 of 10 · back in 5 min",
+  and big **Snooze** / **Stop** buttons, floating at the bottom of the screen over any app
+  (`TYPE_APPLICATION_OVERLAY`, needs **Display over other apps** / `SYSTEM_ALERT_WINDOW`). It stays
+  until a button is pressed or the ring ends; tapping the text opens the full alarm screen. Plain
+  Views, not Compose (a Compose view in a service-owned window would need its own lifecycle owners).
+  Not focusable and not touch-modal, so Back, the keyboard and the rest of the screen keep working.
+- **`AlarmService`** — shows the card when a ring starts **only if** the setting is on, the
+  permission is granted, the screen is on **and** the phone is unlocked (`shouldFloat()`); asleep or
+  locked, the full-screen alarm shows instead (overlays sit below the lock screen anyway). The card
+  is updated with each play, removed by every kind of ending. `openAlarmScreen()` starts the
+  activity *before* removing the card: our visible window is what allows an activity start from the
+  background.
+- **`AlarmActivity`** hides the card while it is on screen (its own buttons are exactly where the
+  card sits) and brings it back if you leave it while still ringing — via `AlarmService.running`, a
+  direct same-process call, because `startService` is refused from the background.
+- **`Settings.stayOnScreen`** (default **on**), shown in Setup as **"Always on display"**, plus a
+  "Display over other apps" row in the permission checklist.
+- **Main screen: an "Always on" chip** in the top bar — **red dot = on and working**, amber dot = on
+  but the permission is missing, grey ring = off. Tapping toggles it and explains in a snackbar;
+  turning it on without the permission opens the permission screen.
+- Version **1.2** (`versionCode 3`). Not released on GitHub yet — v1.1 is the latest release.
+
+### Verified / not verified
+
+- ✅ Builds clean; installed on Omar's phone over 1.1 with his data byte-identical.
+- ✅ Omar granted "Display over other apps" (`SYSTEM_ALERT_WINDOW: allow`).
+- ⬜ **The card itself has not been seen on the phone yet**: the phone locked itself (10-minute
+  screen timeout) before the test could run, and the card only appears on an unlocked phone in use.
+
+---
+
 ## 2026-10-06 — v1.1 published as a GitHub Release with the APK
 
 Omar asked for a release with the APK so visitors can install it without building it.

@@ -108,6 +108,21 @@ class AlarmActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // The floating Snooze/Stop card sits exactly where this screen's own buttons are.
+        AlarmService.running?.hideFloatingCard()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Left the alarm screen (Home, another app) while it is still ringing: bring the card back,
+        // so Stop stays one tap away.
+        if (!isFinishing && !isChangingConfigurations && RingState.current.value != null) {
+            AlarmService.running?.restoreFloatingCard()
+        }
+    }
+
     private fun send(action: String) {
         startService(Intent(this, AlarmService::class.java).setAction(action))
         finish()

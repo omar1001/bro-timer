@@ -38,6 +38,17 @@ Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-0
 | ⬜ | Grid proof: dismiss one ring ~30 s late; the next must still land on the original grid |
 | ⬜ | Switching an alarm off silences its pending snooze/come-back too |
 
+## 2b. Always on display (v1.2)
+
+| | Check |
+|---|---|
+| ✅ | "Display over other apps" granted; Setup shows the "Always on display" switch and checklist row |
+| ⬜ | Main screen top bar shows the **Always on** chip with a **red dot** while on |
+| ⬜ | Ring while the phone is **unlocked and in use** → the Snooze/Stop card floats at the bottom over the current app, and **stays** after the heads-up banner slides away |
+| ⬜ | Stop / Snooze on the card end the ring and remove the card |
+| ⬜ | Tapping the card's text opens the full alarm screen, and the card hides while it is up |
+| ⬜ | Ring while **locked** → full-screen alarm only, no card |
+
 ## 3. Play it N times + come back if missed
 
 | | Check |

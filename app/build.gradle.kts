@@ -14,8 +14,8 @@ android {
         targetSdk = 35
         // Bump both for every GitHub release: versionCode must only ever go up, or Android
         // refuses to install the new APK over the old one.
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
 
         vectorDrawables {
             useSupportLibrary = true

@@ -184,6 +184,12 @@ data class Settings(
      * completely silent.
      */
     val vibrate: Boolean = true,
+    /**
+     * While ringing with the phone unlocked and in use, float a Snooze/Stop card over every app
+     * until one is pressed (needs "Display over other apps"). Omar asked for it 2026-10-06: the
+     * heads-up banner slid away before he could press Stop.
+     */
+    val stayOnScreen: Boolean = true,
 ) {
     fun isSleeping(now: Long): Boolean = sleepUntil > now
 }
@@ -202,6 +208,7 @@ private fun Settings.toJson(): JSONObject = JSONObject()
     .put("themeMode", themeMode)
     .put("wallpaperColors", wallpaperColors)
     .put("vibrate", vibrate)
+    .put("stayOnScreen", stayOnScreen)
 
 private fun settingsFrom(o: JSONObject) = Settings(
     snoozeMinutes = o.optInt("snoozeMinutes", 10),
@@ -213,6 +220,7 @@ private fun settingsFrom(o: JSONObject) = Settings(
     themeMode = o.optInt("themeMode", THEME_SYSTEM),
     wallpaperColors = o.optBoolean("wallpaperColors", false),
     vibrate = o.optBoolean("vibrate", true),
+    stayOnScreen = o.optBoolean("stayOnScreen", true),
 )
 
 // ---------------------------------------------------------------------------------------------

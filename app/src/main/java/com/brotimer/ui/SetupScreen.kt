@@ -98,6 +98,29 @@ fun SetupScreen() {
                 )
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp))
+            val overlayOk = remember(refresh) { AndroidSettings.canDrawOverlays(context) }
+            SettingRow(
+                "Always on display",
+                "While an alarm rings and you're using the phone, Snooze and Stop stay on screen " +
+                    "until you press one. Also on the main screen, with a red dot when on.",
+            ) {
+                Switch(
+                    checked = settings.stayOnScreen,
+                    onCheckedChange = { on -> update { it.copy(stayOnScreen = on) } },
+                )
+            }
+            if (settings.stayOnScreen && !overlayOk) {
+                Text(
+                    "Needs “Display over other apps” — until then you only get the banner that slides away.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+                OutlinedButton(onClick = { context.openOverlaySettings() }, modifier = Modifier.padding(top = 6.dp)) {
+                    Text("Allow display over other apps")
+                }
+            }
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
             SettingRow("Snooze for", "When you press Snooze") {
                 Stepper(settings.snoozeMinutes, { v -> update { it.copy(snoozeMinutes = v) } }, 1..60, suffix = " min")
             }
@@ -241,6 +264,10 @@ fun SetupScreen() {
             }
             CheckRow(audioOk, "Audio files (optional)", "Lets the sound picker list Zedge downloads and other audio on your phone.", "Allow audio files") {
                 audioPermission.launch(SoundLibrary.audioPermission)
+            }
+            val overlayGranted = remember(refresh) { AndroidSettings.canDrawOverlays(context) }
+            CheckRow(overlayGranted, "Display over other apps (optional)", "Lets “Always on display” keep Snooze and Stop visible while you use the phone.", "Allow display over other apps") {
+                context.openOverlaySettings()
             }
         }
 
@@ -387,6 +414,10 @@ private fun Context.launch(intent: Intent) {
         openAppDetails()
     }
 }
+
+private fun Context.openOverlaySettings() = launch(
+    Intent(AndroidSettings.ACTION_MANAGE_OVERLAY_PERMISSION).setData(Uri.parse("package:$packageName"))
+)
 
 private fun Context.openAppDetails() {
     runCatching {
