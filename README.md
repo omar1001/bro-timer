@@ -1,118 +1,133 @@
-# BroTimer
+<p align="center">
+  <img src="docs/screenshots/hero.png" alt="BroTimer: the alarm list, the alarm ringing over the lock screen, and the alarm editor" width="100%">
+</p>
 
-An Android app for repeating reminders that ring like a **real alarm clock** — full screen, with
-sound, over the lock screen, with Snooze and Stop — plus labelled stopwatches and countdown timers.
+<p align="center">
+  <b>Repeating reminders that ring like a real alarm clock.</b><br>
+  Full screen over the lock screen · plays your sound exactly <i>N</i> times · comes back if you miss it
+</p>
 
-Built for a Xiaomi phone running Android 16 / HyperOS, sideloaded over USB with `adb`.
+<p align="center">
+  <img alt="Android 8.0+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
+  <img alt="Kotlin 2.0" src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white">
+  <img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white">
+  <img alt="No database, no network" src="https://img.shields.io/badge/offline-no%20network%20%C2%B7%20no%20tracking-1B2A4A">
+</p>
+
+---
+
+## The idea
+
+Most phones can repeat an alarm every day. Very few can repeat one **every 45 minutes**, or every
+hour and a half — and none of them can *say something* a set number of times and then stop.
+
+BroTimer does exactly that. For example:
+
+> **“Astaghfirullah” · every 1 hour · play it 10 times**
+>
+> Each hour the phone wakes up, shows the text over the lock screen, says the word ten times, and
+> stops by itself. Missed it? It comes back **5 minutes later** — up to 3 times — until you press
+> **Stop**.
+
+Any short audio clip works: a word from Zedge, a voice note from WhatsApp, a recording you made.
+
+## Features
+
+| | |
+|---|---|
+| **Interval alarms** | Every *X* hours and minutes, each with its own text and an on/off switch. They run on a fixed grid — dismissing late never pushes the next one later. |
+| **Play it *N* times** | Choose how many times the sound plays, from 1 to 99 — or keep ringing until you stop it. The editor shows the total: *10 × 2.8 s — about 28 s*. |
+| **Comes back if missed** | Not stopped? It rings again after 5 minutes, up to 3 times. Both numbers are adjustable, and 0 turns it off. |
+| **Your own sounds** | The sound picker lists **every audio file on the phone, newest first**, so a tone you just downloaded is the top row. Or browse files, pick a ringtone, or **Share → BroTimer** from any app. |
+| **Sounds that never vanish** | Picked sounds are copied into the app, so deleting the original — or uninstalling Zedge — never silences an alarm. |
+| **“I will sleep now”** | One tap pauses every interval alarm for 8 h 30 min (adjustable). On waking each alarm starts a fresh countdown, so nothing goes off the instant you wake. |
+| **Stopwatches & timers** | As many as you like, each with a label. Timers ring with the same full-screen alarm, and can play a set number of times too. |
+| **Your choice of feel** | Vibration on or off, snooze length, light / dark / follow-the-phone theme. |
 
 ## Screenshots
 
-Real captures from the phone it was built for.
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/ring-lockscreen.png" width="250" alt="Alarm ringing over the lock screen"><br><sub>Over the lock screen — no unlocking needed</sub></td>
+    <td align="center"><img src="docs/screenshots/editor.png" width="250" alt="Alarm editor with Play it 10 times"><br><sub>Every hour, play it 10 times</sub></td>
+    <td align="center"><img src="docs/screenshots/sound-picker.png" width="250" alt="Sound picker"><br><sub>Your sounds, and the newest audio on the phone</sub></td>
+  </tr>
+</table>
 
-| Interval alarms | Stopwatches | Timers | Setup |
-|---|---|---|---|
-| ![Alarms tab](docs/screenshots/alarms.png) | ![Stopwatch tab](docs/screenshots/stopwatch.png) | ![Timers tab](docs/screenshots/timers.png) | ![Setup screen](docs/screenshots/setup.png) |
-| Each alarm shows its interval and exactly when it fires next. | Labelled, and they keep counting while the app is closed. | Labelled, and they ring like a real alarm at zero. | Settings, plus the checklist that decides whether alarms work. |
+<details>
+<summary><b>More screenshots</b> — timers, stopwatches, sleep mode, settings, dark theme</summary>
+<br>
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/alarms.png" width="220" alt="Alarm list"><br><sub>Alarms, with time to the next ring</sub></td>
+    <td align="center"><img src="docs/screenshots/timers.png" width="220" alt="Timers"><br><sub>Timers</sub></td>
+    <td align="center"><img src="docs/screenshots/stopwatch.png" width="220" alt="Stopwatches"><br><sub>Stopwatches</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/sleep.png" width="220" alt="Sleep mode"><br><sub>“I will sleep now”</sub></td>
+    <td align="center"><img src="docs/screenshots/setup.png" width="220" alt="Settings"><br><sub>Settings and permission checks</sub></td>
+    <td align="center"><img src="docs/screenshots/alarms-dark.png" width="220" alt="Dark theme"><br><sub>Dark theme</sub></td>
+  </tr>
+</table>
+</details>
 
-A timer going off — the alarm gives you **Snooze** and **Stop** wherever you are:
+## Getting a sound from Zedge (or anywhere)
 
-![Alarm ringing](docs/screenshots/ringing.png)
+1. In **Zedge**, open a ringtone and download it. Any app that saves audio to the phone works the same way.
+2. In BroTimer, open an alarm → **Sound**. The file you just downloaded is the first row under
+   **On this phone · newest first**. Tap **▶** to listen, tap the row to use it.
+3. Under **How it rings**, choose **Play it a set number of times** and set the count.
 
-When the phone is **locked**, this takes over the whole screen instead of appearing as a banner.
-
-## What it does
-
-**Interval alarms.** Set one to "every 2 h 30 min" with the text you want to see, and it rings on a
-**fixed grid** from the moment you switched it on. Dismissing an alarm late does not push the next
-one later — 10:00, 12:30, 15:00 stay where they are. Each alarm has its own on/off switch.
-
-**"I will sleep now."** One button pauses every interval alarm for 8 h 30 min (editable, down to
-the minute). While it is asleep a banner shows when it wakes up, and a **Wake up now** button ends
-it early. When sleep ends, every alarm starts a *fresh full countdown* — a 2-hour alarm rings 2
-hours after you wake, not the instant sleep mode lifts. Timers and stopwatches are not affected.
-
-**Stopwatches.** As many as you like, each with a label. They keep counting with the app closed,
-swiped out of Recents, or after a reboot, because the elapsed time is derived from a stored
-timestamp rather than ticked by a running service.
-
-**Timers.** As many as you like, each with a label. When one reaches zero it rings with the same
-full-screen alarm as an interval alarm.
-
-**Sound.** The phone's own alarm ringtone by default. Each alarm and timer can pick a different
-one through the standard Android ringtone chooser. Sound plays on the alarm stream, so it is
-audible even on silent. An alarm nobody answers gives up after 5 minutes (editable) and carries on
-with its normal schedule.
+The first time, BroTimer asks to read your audio files. If you would rather not allow that,
+**Browse files** and **Share → BroTimer** work without it.
 
 ## Build and install
 
-You need the phone plugged in over USB with USB debugging on.
+BroTimer is built from source and installed over USB with `adb`.
 
 ```powershell
-.\install.ps1
+.\install.ps1        # build the APK and install it on the connected phone
 ```
-
-That builds the APK and installs it. Other options:
 
 | Command | What it does |
 |---|---|
-| `.\build.ps1` | Build only. APK lands in `app\build\outputs\apk\debug\app-debug.apk` |
-| `.\build.ps1 -Clean` | Wipe `app\build` first |
+| `.\build.ps1` | Build only → `app\build\outputs\apk\debug\app-debug.apk` |
+| `.\build.ps1 -Clean` | Wipe the previous build first |
 | `.\install.ps1 -Fresh` | Uninstall first (**deletes saved alarms**), then install |
-| `.\install.ps1 -SkipBuild` | Install the APK that is already built |
-| `.\install.ps1 -Launch` | Also open the app on the phone |
+| `.\install.ps1 -Launch` | Also open the app afterwards |
 
-### Toolchain
+It needs a JDK 17, Gradle 8.7 and an Android SDK with platform 35. `tools.ps1` looks for them in
+`$env:BROTIMER_TOOLS`, then in `.\.tools\`. On some Xiaomi phones a normal `adb install` is refused
+(`INSTALL_FAILED_USER_RESTRICTED`); `install.ps1` detects that and installs through the phone's own
+shell instead.
 
-There is no JDK, Android SDK or Gradle on this PC's `PATH`. BroTimer borrows the vendored one from
-the **BroMic** project (`Desktop\bro mic\.tools\`) — JDK 17.0.12, Gradle 8.7, Android SDK with
-platform `android-35` — rather than installing another ~873 MB copy. `tools.ps1` finds it
-automatically.
+## Make sure alarms can reach you
 
-⚠️ **If `Desktop\bro mic\.tools\` is ever moved or deleted, BroTimer stops building.** Point it at
-the new location:
+Open the app's **⚙ Setup**. It checks the four permissions every Android phone needs —
+notifications, full-screen alarms, exact alarms, no battery optimisation — and opens the right
+screen for any that are missing.
 
-```powershell
-$env:BROTIMER_TOOLS = "C:\path\to\.tools"
-```
+**On Xiaomi / HyperOS** a few more live in the phone's own settings, where no app is allowed to
+change them. Setup lists them with their exact menu paths:
 
-Or copy that `.tools` folder into this project — `.gitignore` already excludes it.
+- **Autostart** → on
+- **Other permissions → Show on lock screen** → allow
+- **Other permissions → Display pop-up windows while running in background** → allow
+- **Battery saver** → no restrictions
 
-## After installing — the part that actually matters
+## How it works
 
-Open the app and tap the **gear icon**. Two permissions are needed on any Android phone:
+- **`AlarmManager.setAlarmClock()` for everything** — the only Android alarm that both Doze and
+  battery optimisation leave alone. Measured on a Xiaomi running Android 16: rings land within a
+  few milliseconds of their scheduled time.
+- **The sound lives in a foreground service, not in the alarm screen.** Android may show an alarm as
+  a banner instead of a full screen (always, while the phone is unlocked and in use); the alarm must
+  still be heard.
+- **Counting plays.** Ordinary audio files report when each play finishes. Some built-in phone tones
+  loop by themselves and never do, so BroTimer also watches the playback position jump back to the
+  start — both paths are tested on a real phone.
+- **No database, no network, no tracking.** Settings live in `SharedPreferences`; the app has no
+  internet permission at all.
 
-- **Notifications** — without it there is no alarm notification, so no full-screen alarm.
-- **Full-screen alarms** — Android 14+ treats this as a special permission of its own.
-
-And on Xiaomi / HyperOS, **two more must be switched on by hand**. They have no public setting an
-app can open, and they are the most common reason an alarm never appears:
-
-1. **Autostart → ON** · Settings → Apps → Manage apps → BroTimer → Autostart
-2. **Display pop-up windows while running in background → ON** · same menu → Other permissions
-3. **Battery saver → No restrictions** · same menu → Battery saver
-4. **Lock BroTimer in Recents** · open Recents, drag the card down, tap the padlock
-
-The Setup screen lists all of these with buttons for the ones that can be opened directly.
-
-## If an alarm does not fire
-
-```powershell
-adb shell dumpsys alarm | Select-String brotimer     # is it actually scheduled?
-adb logcat -s BroTimer:V                             # what the app did
-```
-
-## How it is built
-
-Kotlin + Jetpack Compose, one module, no database. State is `SharedPreferences` + `org.json`, so
-the app has no dependency outside the Compose/AndroidX set already cached on this machine.
-
-Scheduling uses `AlarmManager.setAlarmClock()` for everything — interval slots, timers, snoozes and
-the end of sleep mode. It is the only alarm API fully exempt from Doze *and* battery optimisation,
-which is what makes alarms survive an aggressive OEM skin.
-
-The ringing sound is owned by a foreground service, not by the alarm screen. On Android 14+ a
-full-screen intent can be downgraded to a banner, in which case the screen never opens — if the
-screen owned the sound, that alarm would be silent.
-
-See [`CLAUDE.md`](CLAUDE.md) for the file map and [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for the
-record of what was decided and why.
+Kotlin · Jetpack Compose · Material 3 · single module · no third-party libraries beyond AndroidX.
+The full design record — every decision and why — is in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).

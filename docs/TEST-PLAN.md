@@ -2,9 +2,10 @@
 
 What "working" means. Everything here needs the real phone; none of it can be proven by building.
 
-**Status key:** ✅ done · ⬜ still to do
+**Status key:** ✅ verified on the phone · ⬜ still to do
 
-Verified so far on Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`, 2026-09-04.
+Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-09-04 and
+2026-10-06 (evidence for each ✅ is in [`CHANGELOG.md`](CHANGELOG.md)).
 
 ---
 
@@ -12,94 +13,77 @@ Verified so far on Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`, 202
 
 | | Check |
 |---|---|
-| ✅ | `.\build.ps1` produces `app\build\outputs\apk\debug\app-debug.apk` |
-| ✅ | `.\install.ps1` reports success (falls back to `pm install` past HyperOS's block) |
-| ✅ | App launches with no crash; three tabs, sleep banner and + button all render |
-| ✅ | Install-time permissions granted (`dumpsys package com.brotimer`) |
+| ✅ | `.\build.ps1` produces the APK; a clean build has **0 warnings** |
+| ✅ | `.\install.ps1` succeeds (falls back to `pm install` past HyperOS's block when needed) |
+| ✅ | App launches with no crash; saved data from the previous version loads unchanged |
 
 ## 1. Permissions
 
 | | Check |
 |---|---|
-| ✅ | First launch asks for notifications; allowed |
-| ⚠️ | Setup tab shows **OK** for notifications, full-screen alarms and exact alarms. **Battery optimisation is still ON** — press "Turn off battery optimisation" |
-| ⬜ | HyperOS by hand: **Autostart ON**, **Display pop-up windows while running in background ON**, **Battery saver → No restrictions**, app locked in Recents |
+| ✅ | Setup shows all checks green: notifications, full-screen alarms, exact alarms, battery optimisation off, audio files |
+| ⬜ | HyperOS by hand: Autostart, Show on lock screen, pop-up windows in background, battery saver no restrictions — *the lock-screen alarm already works without anyone confirming these this session* |
 
-⚠️ Until those four HyperOS items are done, everything below can fail for reasons that are not
-bugs. Do them first.
-
-## 2. The core loop — the part that must not break
-
-Use a **0 h 1 min** alarm labelled `test water` for these, so each step takes a minute rather than
-an hour.
+## 2. The core loop
 
 | | Check |
 |---|---|
-| ✅ | Creating an alarm schedules it: `adb shell dumpsys alarm \| Select-String brotimer` shows an `Alarm clock:` entry with `window=0` and `device_idle=--` |
-| ⬜ | **Lock the phone, screen off.** Within ~60 s it turns the screen on, shows the full-screen alarm over the lock screen, plays the alarm ringtone, vibrates, and shows the text `test water` |
-| ⬜ | **Snooze** → sound stops → it comes back after the snooze minutes |
-| ⬜ | **Stop** → sound stops |
-| ⬜ | **Grid proof.** Note three consecutive fire times. Dismiss one deliberately late — wait ~30 s before pressing Stop. The next fire time must still land on the original grid, *not* 1 min after the dismiss. **This is the whole point of the design; if it fails, the app is wrong.** |
-| ⬜ | Switch the alarm **off** → no more rings. Switch **on** → the grid re-anchors to that moment |
-| ⬜ | Delete an alarm while it is enabled → nothing rings afterwards |
-| ⬜ | Two alarms enabled at once both ring on their own grids |
+| ✅ | Creating an alarm schedules a real alarm-clock entry: `window=0`, `device_idle=--` |
+| ✅ | A real interval alarm fired on its exact grid slot (03:10:48.917) on the new build |
+| ✅ | **PIN-locked phone, screen off:** the alarm turns the screen on and shows over the lock screen; **no PIN pad**; Stop works without unlocking |
+| ✅ | Snooze → rings again after the snooze minutes (scheduled exactly +10 min) |
+| ✅ | Stop → ends, and cancels any pending come-back |
+| ⬜ | Grid proof: dismiss one ring ~30 s late; the next must still land on the original grid |
+| ⬜ | Switching an alarm off silences its pending snooze/come-back too |
 
-## 3. Sound
-
-| | Check |
-|---|---|
-| ⬜ | Default: the phone's normal alarm ringtone plays |
-| ⬜ | Edit an alarm → **Sound** → pick a different ringtone → that one plays next time |
-| ⬜ | "Use the phone's default alarm sound" resets it |
-| ⬜ | Put the phone on **silent**. The alarm is still audible (it plays on the alarm stream) |
-
-## 4. Sleep mode
-
-Set the sleep length to **0 h 3 min** in Setup first, so this takes minutes.
+## 3. Play it N times + come back if missed
 
 | | Check |
 |---|---|
-| ⬜ | **I will sleep now** → banner turns to "Sleeping", shows the wake time and a countdown |
-| ⬜ | The 1-minute alarm stays completely silent for the whole 3 minutes |
-| ⬜ | When sleep ends, **nothing fires immediately**; the next ring is a *full* 1 minute later |
-| ⬜ | **Wake up now** mid-sleep → banner clears, and again nothing fires immediately |
-| ⬜ | A **timer** started before sleep still rings during sleep (sleep is alarms-only) |
+| ✅ | A clip set to 3 plays exactly 3 times, then stops (`played 3/3`, 7.7 s for a 2.4 s clip) |
+| ✅ | Notification and ring screen show "Playing N of M" live |
+| ✅ | Unanswered → comes back after the set minutes, as "Back again · n of 3" |
+| ✅ | Come-backs stop after the set count (`no come-back (attempt 3 of 3)`) |
+| ✅ | A **self-looping** OGG (`ANDROID_LOOP=true`) is still counted correctly (wrap detection) |
+| ⬜ | "Keep ringing" alarm left alone: gives up at the max ring time, then comes back |
+| ⬜ | Two different alarms ringing back to back: the first gets its come-back |
 
-Then put the sleep length back to 8 h 30 min.
-
-## 5. Timers
-
-| | Check |
-|---|---|
-| ✅ | A 3-minute timer `Tea` fired **exactly** at its due time. Log: `fired type=timer id=6` → `ringing 6 'Tea' for up to 300s`. The notification carried the label and working **Snooze 10m** / **Stop** actions. Sound started (no `no usable ringtone` in the log). It appeared as a heads-up banner rather than taking over the screen **because the phone was unlocked and in use** — that is Android's documented full-screen-intent behaviour, not a fault. The locked-screen case is section 2. |
-| ⬜ | Pause mid-countdown → the number stops; Start → it resumes from there |
-| ⬜ | Reset → back to the full duration |
-| ⬜ | After it rings, the timer shows its full duration again, ready to re-run |
-| ⬜ | Leave the app while a timer runs, come back → the remaining time is correct |
-
-## 6. Stopwatches
+## 4. Sounds
 
 | | Check |
 |---|---|
-| ⬜ | Start, **swipe the app out of Recents**, wait 60 s, reopen → it advanced by ~60 s |
-| ⬜ | Pause / resume / reset all behave |
-| ⬜ | Two stopwatches run independently |
+| ✅ | Default sound shows its real name ("Default (Alarm Sunny Instrument)") and length |
+| ✅ | **On this phone · newest first** lists a just-downloaded file as the first row |
+| ✅ | Picking a phone file copies it into the app, byte-identical, and selects it |
+| ✅ | ▶ preview plays; delete a sound → confirm → gone; alarms using it fall back to the default |
+| ✅ | **Share → BroTimer** imports the file and offers to assign it to an alarm or timer |
+| ⬜ | **Browse files** (system file picker) import |
+| ⬜ | **Ringtones** (system picker) choice plays at ring time |
+| ⬜ | **A real Zedge download** — Omar's actual use case |
+
+## 5. Vibration, sleep, look
+
+| | Check |
+|---|---|
+| ✅ | Vibration off: a full ring adds **no** entry to the phone's vibration history |
+| ⬜ | Vibration forced on when the sound cannot be played |
+| ⬜ | **I will sleep now** → alarms silent for the period; on waking nothing fires immediately |
+| ✅ | Sleep card, light/dark theme and wallpaper-colour switch render correctly |
+
+## 6. Timers and stopwatches
+
+| | Check |
+|---|---|
+| ✅ | Timer fires on time (10.0 s after Start) with its own sound and repeat count |
+| ✅ | Timers can be edited; pause / reset behave |
+| ⬜ | Stopwatch keeps counting after the app is swiped away (verified indirectly: Omar's `soy` stopwatch kept its start time across reinstalls and a data restore) |
 
 ## 7. Survival
 
 | | Check |
 |---|---|
-| ⬜ | `adb reboot`. **Without opening the app**, `adb shell dumpsys alarm \| Select-String brotimer` lists the alarms again |
-| ⬜ | After reboot the 1-minute alarm still rings |
-| ⬜ | A running stopwatch still shows the right elapsed time after reboot |
-| ⬜ | Reinstall over the top (`.\install.ps1`) → alarms and stopwatches survive |
-| ⬜ | **Give-up timer:** let an alarm ring untouched. It stops itself at ~5 minutes, and the grid carries on |
-
-## 8. Many at once
-
-| | Check |
-|---|---|
-| ⬜ | 3 alarms, 3 stopwatches, 3 timers all exist and all show correctly in their tabs |
+| ✅ | Reinstall over the top keeps alarms, stopwatches, timers |
+| ⬜ | `adb reboot` → alarms re-armed without opening the app |
 
 ---
 
@@ -108,11 +92,9 @@ Then put the sleep length back to 8 h 30 min.
 ```powershell
 adb shell dumpsys alarm | Select-String brotimer     # what is actually scheduled
 adb logcat -s BroTimer:V                             # what the app decided
-adb logcat -s BroTimer:V AndroidRuntime:E            # ...plus crashes
 ```
 
-In a `dumpsys alarm` entry, the healthy signs are `window=0` (exact),
-`whenElapsed == maxWhenElapsed` (no slack), and `device_idle=--  battery_saver=--` (nothing is
-deferring it).
+The phone's log buffer is small and busy: for a long test, stream it to a file on the PC
+(`adb logcat -v time -s BroTimer:V > log.txt`) — otherwise early lines are gone by the time you look.
 
-**If an alarm did not fire, check the four HyperOS settings in section 1 before reading any code.**
+**If an alarm did not fire, check the HyperOS settings in section 1 before reading any code.**

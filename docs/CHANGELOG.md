@@ -1,6 +1,151 @@
 # BroTimer — change log
 
 Full dated entries. The index lives in [`../CLAUDE.md`](../CLAUDE.md); this file is the record.
+Newest first.
+
+---
+
+## 2026-10-06 — Play a sound N times, come back if missed, your own sounds, vibration switch, visual redesign
+
+### What Omar asked for
+
+1. Pick a specific sound — e.g. a clip that **says a word** — and have the alarm **play it a set
+   number of times** (his example: 10), then stop.
+2. If he does not press Stop, it **comes back after 5 minutes** ("not ten"), adjustable.
+3. Sounds from **outside the phone's built-in ringtones** — he plans to use **Zedge** — "the easiest
+   possible", downloading a file and picking it manually being acceptable.
+4. Improve the visuals a little, retake screenshots in as many situations as possible, put 2–3 in a
+   README that makes the project look good to people visiting his GitHub, push. "Do all
+   automatically — don't tell me to do things manually unless there is no way."
+5. *(Mid-session)* An **off switch for vibration** — "it is annoying".
+
+### Decisions — do not re-litigate
+
+| Question | Decision | Why |
+|---|---|---|
+| Where does the repeat count live? | **Per alarm and per timer** (`repeatCount`), `0` = keep ringing | Different reminders want different counts. `0` is the default so alarms made before this keep ringing exactly as they did. |
+| How does a counted ring end? | When the count is reached → treated as **unanswered** | That is what "if I didn't click Stop" means. |
+| Come-back: global or per alarm? | **Global** (`comebackMinutes` = 5, `comebackTimes` = 3) | Omar described one rule. Samsung-style "interval + how many times"; 3 is a guess, adjustable, and 0 minutes turns it off. |
+| Come-back vs. the snooze slot | **Same `PendingIntent` slot** (`KIND_SNOOZE`), with an `EXTRA_ATTEMPT` | A manual snooze and a come-back for one alarm can never both be pending; the later replaces the earlier. Manual snooze resets the attempt to 0. |
+| Stop | **Cancels any pending come-back** for that alarm | Otherwise a come-back racing the next scheduled ring could ring after Stop. |
+| Come-back later than the alarm's next scheduled ring | **Skipped** (`AlarmService.comeBack`) | The scheduled ring reminds anyway; avoids a double ring. |
+| Same alarm rings while still ringing | **Superseded silently** (treated as STOPPED, no come-back) | Its own come-back colliding with its next scheduled ring. A *different* alarm replacing it = unanswered → come-back. |
+| How are outside sounds stored? | **Copied into `files/sounds/`**, never referenced | A Zedge/WhatsApp/Downloads file can be deleted, moved, or lose its read grant; an alarm that silently loses its sound is the worst failure this app can have. System ringtones stay as references (the phone manages them). |
+| Easiest Zedge path | Sound picker lists **all phone audio, newest first** (MediaStore, needs `READ_MEDIA_AUDIO`) | A tone downloaded a minute ago is the first row. Plus **Browse files** (SAF, no permission), **Ringtones** (system picker), and **Share → BroTimer** (`ACTION_SEND audio/*`). |
+| Vibration | **Global switch**, default on; **forced on if the sound fails to play** | Omar asked for the ability; per-alarm was judged unnecessary. A ring with no sound *and* no vibration would wake nobody. Set **off** on Omar's phone at his request. |
+| Look | **Fixed BroTimer palette** (navy `#1B2A4A` from the icon + amber), wallpaper colours now **opt-in** | Dynamic colour made the app (and README screenshots) depend on the wallpaper. Plus a Phone / Light / Dark choice. |
+
+### What changed, by file
+
+- **`model/Models.kt`** — `repeatCount` on `IntervalAlarm` and `TimerItem` (`KEEP_RINGING = 0`);
+  `Settings` gains `comebackMinutes`, `comebackTimes`, `themeMode`, `wallpaperColors`, `vibrate`. All
+  read with `opt*` defaults, so old saved data loads unchanged.
+- **`alarm/AlarmService.kt`** — rewritten ring engine. Counted mode: `isLooping = false`, the
+  completion listener restarts the clip until the count is reached. **Self-looping files**
+  (OGG tagged `ANDROID_LOOP`, common in AOSP tones) never report completion, so
+  `watchForSelfLooping()` polls the position and counts a play when it jumps back to the start —
+  without seeking, so there is no stutter. Endings are an explicit `End` enum (STOPPED / SNOOZED /
+  UNANSWERED / REPLACED). The notification shows "Playing 3 of 10 · back in 5 min if not stopped"
+  (`setOnlyAlertOnce` so updates never re-alert). A vibrate-only ring (no playable sound) shows
+  "Ringing" instead of a count that never moves. Hard safety cap for counted rings: 30 min.
+- **`alarm/RingState.kt`** (new) — a `StateFlow` of what is ringing. Replaced the old
+  `ACTION_RING_ENDED` broadcast: a flow always has a current value, so an alarm screen that opens
+  late or is recreated closes itself immediately if the ring already ended.
+- **`alarm/AlarmActivity.kt`** — redesigned ring screen (clock, date, pulsing amber rings, label,
+  "Playing N of M" with a progress bar, come-back hint, big Snooze / Stop). **Removed
+  `KeyguardManager.requestDismissKeyguard`** — on a PIN-locked phone it raises the PIN pad *over*
+  the alarm, covering Stop. Found by reasoning about Omar's PIN before testing; then verified on the
+  locked phone (below).
+- **`alarm/Scheduler.kt`** — `EXTRA_ATTEMPT`; `scheduleSnooze(…, attempt)`; `rescheduleAll` now also
+  cancels pending snoozes/come-backs of alarms that are switched off or asleep (timer snoozes are
+  deliberately left alone: a finished timer is "not running" exactly while its come-back is pending).
+- **`alarm/AlarmReceiver.kt`** — passes repeat count and attempt through; a snooze for an alarm that
+  was **switched off** since no longer rings (it used to).
+- **`data/SoundLibrary.kt`** (new) — import (copy, size cap 30 MB, playability check, re-import
+  dedupe by name+size), delete (resets any alarm/timer using it to the default), display names,
+  durations, MediaStore query, permission helpers.
+- **`data/Store.kt`** — `replaceSound(old, new)`.
+- **`ui/`** — new `AppIcons.kt` (own vector icons: alarm clock, stopwatch, hourglass, pause… — the
+  cached `material-icons-core` has none of them), `SoundPicker.kt`, `EditorParts.kt` (sound field,
+  repeat chooser, quick-pick chips), full-screen editors for alarms **and timers** (timers can now be
+  edited at all), circular timer rings, alarm progress bars, night-sky sleep card, Setup regrouped
+  into cards with steppers. `Theme.kt` rewritten.
+- **`MainActivity.kt`** — `enableEdgeToEdge()`; handles `ACTION_SEND` (only on a fresh start, so a
+  rotation does not import twice).
+- **`AndroidManifest.xml`** — `READ_MEDIA_AUDIO` (+ `READ_EXTERNAL_STORAGE` ≤ API 32); share
+  intent-filters for `audio/*` and `application/ogg`.
+
+### Bugs found and fixed on the device this session
+
+1. **Stale media ID in the default alarm URI.** Omar's phone stores the default alarm as
+   `content://media/internal/audio/media/270?title=Alarm_Sunny_Instrument&canonical=1`, but ID 270
+   is now `charging.ogg`; the real file is 272. Without `READ_MEDIA_AUDIO`, `Ringtone.getTitle`
+   fails quietly and returns the last path segment, so the editor said **"Default (270)"**. Fix:
+   read the title from the canonical URI's own `title` parameter; treat an all-digits title as
+   unknown; always resolve via `ContentResolver.uncanonicalize` before playing.
+2. **`MediaMetadataRetriever` cannot open `content://settings/system/alarm_alert`** ("could not
+   access"). `MediaPlayer` can — it falls back to the system's cached ringtone copy. Durations are
+   now measured with `MediaPlayer`.
+3. **Full-screen dialogs had a black strip over the status bar**, then (after
+   `decorFitsSystemWindows = false`) **white status icons on a white background**. Root cause, found
+   from the logged appearance flags plus the window dump: Compose dialogs carry `FLAG_DIM_BEHIND`,
+   and while it is set the system forces light icons whatever `isAppearanceLightStatusBars` says.
+   `FullScreenDialog` clears it and adds `FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS`. Measured: darkest
+   status-bar pixel 250 → 62.
+4. The "Show my audio files" button was a tonal button on a same-coloured card — invisible.
+5. "10 × 0:02 — about 23 s" read as bad maths (the clip is 2.3 s): short clips now show tenths.
+6. `ExtendedFloatingActionButton` does not expose its label to accessibility on this Compose
+   version — explicit `contentDescription` added.
+
+### Verified on the phone (Xiaomi 23117RA68G, Android 16, HyperOS V816)
+
+All from a background `logcat` stream captured to a file (the phone's own log buffer is too small
+and busy to keep a whole test). **17 rings, 0 crashes, 0 app warnings.**
+
+| Test | Evidence |
+|---|---|
+| Counted play: clip × 3 then stop | `ringing 5 'Tea' repeat=3 … clip=2429ms` → `played 3/3, unanswered` 7.7 s later |
+| Come-back chain, capped | come-backs 1, 2, 3 rang; then `no come-back (attempt 3 of 3)` |
+| Stop cancels come-back | `ended: STOPPED after 1 play(s)`, no `comes back` line |
+| Snooze | `snooze for 5 … (attempt 0)`, due exactly 10 min later |
+| Self-looping OGG (`ANDROID_LOOP=true`, made with ffmpeg) | three `self-looping sound wrapped … counting a play`, then `played 3/3` |
+| Vibration off | phone's vibration history for BroTimer: 55 entries before a ring, 55 after |
+| **Ring over the PIN-locked screen** | screen `Dozing` + keyguard showing → alarm fired → `Awake`, top activity `AlarmActivity`, keyguard **still showing**, **no PIN pad**; "Playing 7 of 10" on screen; Stop pressed without unlocking → `ended: STOPPED` |
+| Zedge-style flow | test clips pushed to `Download/` appeared as the **first rows** of "On this phone"; one tap copied (byte-identical) and selected it |
+| Share → BroTimer | `ACTION_SEND audio/mpeg` → "Sound added … Use it for:" listing the real alarm and timer |
+| Delete a sound | confirm dialog → file removed → library list updated |
+| Real alarm on the new build | system log: `03:10:48.917 … com.brotimer.action.FIRE` — its exact grid slot |
+
+The lock-screen alarm appeared **without** anyone confirming the HyperOS "Show on lock screen" /
+"pop-up windows" toggles in this session — whether Omar set them earlier is unknown, so Setup still
+lists them.
+
+None of the Xiaomi alarm tones carry `ANDROID_LOOP` (checked all with ffprobe), so on Omar's phone
+the completion-listener path is the one that runs; the wrap watcher is for other phones.
+
+### How the testing touched Omar's phone — and how it was undone
+
+- His data was backed up first (`.gradle-tmp/omar-data-backup-2026-10-06.xml`, gitignored), demo
+  data loaded for screenshots, then **restored exactly** (same alarm grid, stopwatch still counting
+  from its original start, timer stopped at 2:05:00) with `vibrate: false` added at his request.
+  His alarm was re-armed and verified: next ring 05:10:48, `window=0`.
+- One test tap **started his real "check soy" timer** by mistake (the new card sat below it); it was
+  reset immediately and verified identical to the backup.
+- The audio permission prompt appeared on screen and was answered **Allow** on the phone — not by
+  the test script, which only took a screenshot.
+- Test clips pushed to `Download/BroTimer test sounds/` and the copies in the app's library were all
+  deleted afterwards, MediaStore rows included.
+
+### Tooling lessons (also in memory)
+
+- **Never pipe a binary file from Windows into `adb shell`** — stdin is text mode and stops at the
+  first `0x1A`. Sound files arrived truncated (862 bytes instead of 37,713). `adb push` it, then copy
+  on the device: `adb shell "cat /data/local/tmp/x | run-as <pkg> tee 'files/...'"`.
+- `run-as <pkg> sh -c '…'` **loses the app's SELinux context** on HyperOS; `run-as <pkg> tee <relative
+  path>` (no shell) works.
+- `uiautomator dump` sees the app's windows but **not SystemUI** — notification action buttons must be
+  tapped by coordinates.
+- `adb shell am start` cannot open a non-exported activity on Android 16.
 
 ---
 
