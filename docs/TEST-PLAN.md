@@ -17,7 +17,7 @@ Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-0
 | ✅ | `.\install.ps1` succeeds (falls back to `pm install` past HyperOS's block when needed) |
 | ✅ | App launches with no crash; saved data from the previous version loads unchanged |
 | ✅ | **v1.1 from the GitHub Release** (the publicly downloaded file, SHA-256 checked) installs over 1.0: data byte-identical, all 4 scheduled alarms kept to the millisecond, no crash |
-| ⬜ | Setup shows "BroTimer 1.1" — the phone was locked when checked |
+| ✅ | Setup shows "BroTimer 1.1 · github.com/omar1001/bro-timer" (checked on screen after Omar unlocked) |
 
 ## 1. Permissions
 
