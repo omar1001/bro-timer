@@ -263,6 +263,23 @@ fun SetupScreen() {
                 Text("Open BroTimer's app info page")
             }
         }
+
+        // Which build this is — so a copy installed from GitHub Releases can be compared with
+        // the latest one there.
+        val version = remember {
+            runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
+                .getOrNull()
+                .orEmpty()
+        }
+        Text(
+            "BroTimer $version · github.com/omar1001/bro-timer",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 18.dp),
+        )
         Spacer(Modifier.height(24.dp))
     }
 }

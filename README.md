@@ -8,6 +8,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/omar1001/bro-timer/releases/latest"><img alt="Download the latest APK" src="https://img.shields.io/github/v/release/omar1001/bro-timer?label=download%20APK&logo=android&logoColor=white&color=F4BF48"></a>
   <img alt="Android 8.0+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Kotlin 2.0" src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white">
   <img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white">
@@ -81,9 +82,20 @@ Any short audio clip works: a word from Zedge, a voice note from WhatsApp, a rec
 The first time, BroTimer asks to read your audio files. If you would rather not allow that,
 **Browse files** and **Share → BroTimer** work without it.
 
-## Build and install
+## Install
 
-BroTimer is built from source and installed over USB with `adb`.
+1. On your Android phone (8.0 or newer), open the
+   **[latest release](https://github.com/omar1001/bro-timer/releases/latest)** and download
+   `BroTimer-<version>.apk`.
+2. Open the downloaded file. The first time, Android asks you to allow installing apps from your
+   browser or Files app — allow it for this install.
+3. Open BroTimer, tap **⚙ Setup**, and fix anything that is not green (see below).
+
+A newer release installs over an older one and keeps your alarms.
+
+## Build it yourself
+
+BroTimer can also be built from source and installed over USB with `adb`.
 
 ```powershell
 .\install.ps1        # build the APK and install it on the connected phone

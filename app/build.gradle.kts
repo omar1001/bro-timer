@@ -12,8 +12,10 @@ android {
         applicationId = "com.brotimer"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        // Bump both for every GitHub release: versionCode must only ever go up, or Android
+        // refuses to install the new APK over the old one.
+        versionCode = 2
+        versionName = "1.1"
 
         vectorDrawables {
             useSupportLibrary = true

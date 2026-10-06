@@ -68,6 +68,11 @@ Android 16 / API 36, HyperOS `V816`. Sideloaded over USB with `adb`; never publi
   `.\.tools`, then `..\..\bro mic\.tools`, then `$HOME\Desktop\bro mic\.tools`.
   ⚠️ **Moving or deleting `Desktop\bro mic\.tools\` breaks this build.** Fix by setting
   `$env:BROTIMER_TOOLS`, or copy that folder in here (`.gitignore` already excludes it).
+- **Releases** (GitHub, `v1.1` onward): bump `versionCode` **and** `versionName` in
+  `app/build.gradle.kts`, `.\build.ps1 -Clean`, copy the APK to `BroTimer-<version>.apk`, then
+  `gh release create v<version> BroTimer-<version>.apk --notes-file …`. The asset is the
+  **debug-signed** build on purpose (see the 2026-10-06 v1.1 entry). ⚠️ It is signed with
+  `~\.android\debug.keystore` — **lose that file and no future APK can update existing installs**.
 - Diagnostics: `adb shell dumpsys alarm | Select-String brotimer` (what is scheduled),
   `adb logcat -s BroTimer:V` (what the app did — stream it to a file for long tests; the phone's
   buffer drops early lines).
@@ -99,5 +104,6 @@ Full dated entries live in [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — the rows
 
 | Date | Headline | Read before touching |
 |---|---|---|
+| 2026-10-06 | v1.1 released on GitHub with the debug-signed APK; version shown in Setup; README download badge | Releasing, signing, `versionCode` |
 | 2026-10-06 | Play a sound N times, come back if unanswered, own sounds (Zedge/phone audio/share, copied in), vibration switch, visual redesign; lock-screen alarm verified with PIN | `alarm/AlarmService`, `alarm/AlarmActivity`, `data/SoundLibrary`, any sound or ring-ending logic, `FullScreenDialog` |
 | 2026-09-04 | Initial build: interval alarms on a fixed grid, sleep mode, stopwatches, timers, borrowed toolchain | Everything — this is the whole app |

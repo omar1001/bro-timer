@@ -5,6 +5,41 @@ Newest first.
 
 ---
 
+## 2026-10-06 — v1.1 published as a GitHub Release with the APK
+
+Omar asked for a release with the APK so visitors can install it without building it.
+
+- **Version bumped** to `versionCode 2`, `versionName "1.1"` (`app/build.gradle.kts`) — it had never
+  moved from 1.0. Tag `v1.1`, asset `BroTimer-1.1.apk`.
+- **Setup shows the version** at the bottom ("BroTimer 1.1 · github.com/omar1001/bro-timer"), read
+  from `PackageManager` so no `BuildConfig` generation is needed.
+- **README**: a "download APK" badge (shields.io, tracks the latest release) and an **Install**
+  section ahead of "Build it yourself".
+
+### Decision: publish the debug-signed APK, not a minified release build
+
+The APK on the release is `assembleDebug` output — the same build type that was tested on the phone
+all day. A `release` build would add R8 shrinking (untested here) and need a signing key of its own;
+a new key would also make the release **unable to update the copy on Omar's phone** without an
+uninstall (Android refuses a different signature), which wipes his alarms. The debug APK is
+`debuggable`, which is harmless for an offline alarm app. Revisit only with a reason.
+
+### ⚠️ The signing key lives on this PC only
+
+Every APK built here — the release asset and everything `install.ps1` puts on the phone — is signed
+with `C:\Users\VENOM TECH\.android\debug.keystore` (certificate `CN=Android Debug`, SHA-256
+`0c47eb12c7b002246d82759c91de9a4f2ff416bf4f63fc2a334a66052886d3be`). **If that file is lost, no
+future APK can update an existing install**; everyone, Omar included, would have to uninstall first
+and lose their alarms. It is not in the repo and must not be. Back it up somewhere private.
+
+### Not hardware-verified
+
+The phone was unplugged by the time v1.1 was built, so v1.1 itself was not installed on it. Its
+only differences from the build tested on the phone the same day are the version numbers and the
+Setup version line. The release notes say so.
+
+---
+
 ## 2026-10-06 — Play a sound N times, come back if missed, your own sounds, vibration switch, visual redesign
 
 ### What Omar asked for

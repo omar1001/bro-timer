@@ -16,6 +16,7 @@ Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-0
 | ✅ | `.\build.ps1` produces the APK; a clean build has **0 warnings** |
 | ✅ | `.\install.ps1` succeeds (falls back to `pm install` past HyperOS's block when needed) |
 | ✅ | App launches with no crash; saved data from the previous version loads unchanged |
+| ⬜ | **v1.1 from the GitHub Release** installs over the copy on the phone and keeps the alarms; Setup shows "BroTimer 1.1" |
 
 ## 1. Permissions
 
