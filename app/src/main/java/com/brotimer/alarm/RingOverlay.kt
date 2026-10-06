@@ -93,7 +93,8 @@ internal class RingOverlay(
         val card = LinearLayout(service).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(16), dp(18), dp(16))
-            background = rounded(0xF2101A33.toInt(), 26, stroke = 0x40FFFFFF)
+            // Fully opaque: at 95% the home-screen icons underneath showed through the buttons.
+            background = rounded(0xFF101A33.toInt(), 26, stroke = 0x40FFFFFF)
             elevation = dp(10).toFloat()
         }
 

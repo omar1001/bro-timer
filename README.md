@@ -39,6 +39,7 @@ Any short audio clip works: a word from Zedge, a voice note from WhatsApp, a rec
 | **Interval alarms** | Every *X* hours and minutes, each with its own text and an on/off switch. They run on a fixed grid — dismissing late never pushes the next one later. |
 | **Play it *N* times** | Choose how many times the sound plays, from 1 to 99 — or keep ringing until you stop it. The editor shows the total: *10 × 2.8 s — about 28 s*. |
 | **Comes back if missed** | Not stopped? It rings again after 5 minutes, up to 3 times. Both numbers are adjustable, and 0 turns it off. |
+| **Always on display** | While an alarm rings and you are using the phone, a card with **Snooze** and **Stop** stays on screen over any app until you press one — no hunting through notifications after the banner slides away. A **● Always on** chip on the main screen shows it is on. |
 | **Your own sounds** | The sound picker lists **every audio file on the phone, newest first**, so a tone you just downloaded is the top row. Or browse files, pick a ringtone, or **Share → BroTimer** from any app. |
 | **Sounds that never vanish** | Picked sounds are copied into the app, so deleting the original — or uninstalling Zedge — never silences an alarm. |
 | **“I will sleep now”** | One tap pauses every interval alarm for 8 h 30 min (adjustable). On waking each alarm starts a fresh countdown, so nothing goes off the instant you wake. |
@@ -117,7 +118,8 @@ shell instead.
 
 Open the app's **⚙ Setup**. It checks the four permissions every Android phone needs —
 notifications, full-screen alarms, exact alarms, no battery optimisation — and opens the right
-screen for any that are missing.
+screen for any that are missing. Two more are optional: **Display over other apps** (for
+*Always on display*) and **audio files** (to list the sounds on your phone).
 
 **On Xiaomi / HyperOS** a few more live in the phone's own settings, where no app is allowed to
 change them. Setup lists them with their exact menu paths:
