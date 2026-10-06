@@ -47,8 +47,15 @@ over all apps, or one inside the app), he chose **inside the app**.
 
 - ✅ Builds clean; installed on Omar's phone over 1.1 with his data byte-identical.
 - ✅ Omar granted "Display over other apps" (`SYSTEM_ALERT_WINDOW: allow`).
-- ⬜ **The card itself has not been seen on the phone yet**: the phone locked itself (10-minute
-  screen timeout) before the test could run, and the card only appears on an unlocked phone in use.
+- ✅ **Verified on the phone** (after a USB reconnect): Omar's **real** `istighfaar 10` alarm rang at
+  09:10:48 while the phone was unlocked → `always-on card shown for 1`; a screenshot a minute later
+  shows the card still at the bottom of the home screen, long after the heads-up banner had gone;
+  it was then stopped. With a 10-second test timer: Stop on the card, Snooze on the card
+  (`snooze … (attempt 0)`), and tapping the card's text (opens the full alarm screen; the card is
+  gone while it is up) all behaved. The test timer was deleted afterwards; Omar's alarms,
+  stopwatch, timers and settings were identical to before. 0 crashes.
+- The card now logs `always-on card shown` / `not shown: <reason>` (switched off, no permission,
+  screen off, locked), so a "the card didn't appear" report can be answered from the log.
 
 ---
 

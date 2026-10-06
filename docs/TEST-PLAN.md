@@ -43,11 +43,12 @@ Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-0
 | | Check |
 |---|---|
 | ✅ | "Display over other apps" granted; Setup shows the "Always on display" switch and checklist row |
-| ⬜ | Main screen top bar shows the **Always on** chip with a **red dot** while on |
-| ⬜ | Ring while the phone is **unlocked and in use** → the Snooze/Stop card floats at the bottom over the current app, and **stays** after the heads-up banner slides away |
-| ⬜ | Stop / Snooze on the card end the ring and remove the card |
-| ⬜ | Tapping the card's text opens the full alarm screen, and the card hides while it is up |
-| ⬜ | Ring while **locked** → full-screen alarm only, no card |
+| ✅ | Main screen top bar shows the **● Always on** chip with a **red dot** while on |
+| ✅ | **Omar's real alarm** rang while the phone was unlocked and in use → `always-on card shown`; the card was **still on screen a minute later**, long after the heads-up banner had gone; it was stopped from there |
+| ✅ | Stop on the card ends the ring and removes the card |
+| ✅ | Snooze on the card → `snooze … (attempt 0)`, `ended: SNOOZED` |
+| ✅ | Tapping the card's text opens the full alarm screen, and the card is gone while it is up |
+| ✅ | Ring while **locked** → full-screen alarm only (the card is skipped and logs why) |
 
 ## 3. Play it N times + come back if missed
 
