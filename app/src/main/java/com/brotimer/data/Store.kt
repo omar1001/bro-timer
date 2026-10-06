@@ -121,6 +121,16 @@ object Store {
         prefs?.edit()?.putString(KEY_TIMERS, Codec.encodeTimers(list))?.commit()
     }
 
+    /** Points every alarm and timer that used sound [old] at [new] instead (null = phone default). */
+    fun replaceSound(old: String, new: String?) {
+        if (_alarms.value.any { it.soundUri == old }) {
+            writeAlarms(_alarms.value.map { if (it.soundUri == old) it.copy(soundUri = new) else it })
+        }
+        if (_timers.value.any { it.soundUri == old }) {
+            writeTimers(_timers.value.map { if (it.soundUri == old) it.copy(soundUri = new) else it })
+        }
+    }
+
     // -- settings ------------------------------------------------------------------------------
 
     fun putSettings(s: Settings) {

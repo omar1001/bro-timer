@@ -20,6 +20,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Optional, asked only when Omar opens "On this phone" in the sound picker: lets it list
+         Zedge downloads and other audio, newest first. Picking a file through "Browse files" or
+         Share needs no permission at all. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -36,6 +44,18 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Share → BroTimer: an audio file from WhatsApp, Telegram, Files, a recorder... is
+                 copied into the sound library and assigned to an alarm or timer. -->
+            <intent-filter android:label="Use as BroTimer sound">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+            <intent-filter android:label="Use as BroTimer sound">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/ogg" />
             </intent-filter>
         </activity>
 

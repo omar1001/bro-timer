@@ -17,8 +17,9 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val type = intent.getStringExtra(Scheduler.EXTRA_TYPE) ?: return
         val id = intent.getIntExtra(Scheduler.EXTRA_ID, -1)
+        val attempt = intent.getIntExtra(Scheduler.EXTRA_ATTEMPT, 0)
         val now = System.currentTimeMillis()
-        Log.i(Scheduler.TAG, "fired type=$type id=$id")
+        Log.i(Scheduler.TAG, "fired type=$type id=$id attempt=$attempt")
 
         when (type) {
             Scheduler.TYPE_SLEEP_END -> SleepMode.end(context)
@@ -31,9 +32,10 @@ class AlarmReceiver : BroadcastReceiver() {
                     Scheduler.cancelInterval(context, id)
                     return
                 }
-                // A pending snooze for this same alarm would ring twice. The live ring wins.
+                // A pending snooze or come-back for this same alarm would ring twice. The live,
+                // scheduled ring wins, and starts a fresh come-back count.
                 Scheduler.cancelSnooze(context, id)
-                AlarmService.ring(context, id, alarm.label, alarm.soundUri)
+                AlarmService.ring(context, id, alarm.label, alarm.soundUri, alarm.repeatCount, attempt = 0)
                 // Immediately arm the next grid slot, so a slow dismiss cannot lose the chain.
                 Scheduler.scheduleInterval(context, alarm, now)
             }
@@ -43,7 +45,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 Scheduler.cancelSnooze(context, id)
                 // A finished timer stops and resets to its full duration, ready to run again.
                 Store.putTimer(timer.copy(running = false, endsAt = 0L, remainingMs = timer.durationMs))
-                AlarmService.ring(context, id, timer.label, timer.soundUri)
+                AlarmService.ring(context, id, timer.label, timer.soundUri, timer.repeatCount, attempt = 0)
             }
 
             Scheduler.TYPE_SNOOZE -> {
@@ -52,10 +54,12 @@ class AlarmReceiver : BroadcastReceiver() {
                 val timer = Store.timer(id)
                 when {
                     alarm != null -> {
-                        if (Store.settings.value.isSleeping(now)) return
-                        AlarmService.ring(context, id, alarm.label, alarm.soundUri)
+                        // Switched off or asleep since the snooze was set: stay quiet.
+                        if (!alarm.enabled || Store.settings.value.isSleeping(now)) return
+                        AlarmService.ring(context, id, alarm.label, alarm.soundUri, alarm.repeatCount, attempt)
                     }
-                    timer != null -> AlarmService.ring(context, id, timer.label, timer.soundUri)
+                    timer != null ->
+                        AlarmService.ring(context, id, timer.label, timer.soundUri, timer.repeatCount, attempt)
                     else -> Log.w(Scheduler.TAG, "snooze for deleted entity $id, ignoring")
                 }
             }

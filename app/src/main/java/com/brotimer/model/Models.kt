@@ -26,11 +26,20 @@ data class IntervalAlarm(
     val enabled: Boolean,
     /** Wall-clock ms the repeating grid is measured from. Reset whenever the alarm is switched on. */
     val anchorAt: Long,
-    /** null = the phone's default alarm ringtone. */
+    /** null = the phone's default alarm ringtone. See [com.brotimer.data.SoundLibrary]. */
     val soundUri: String? = null,
+    /** How many times the sound plays per ring. [KEEP_RINGING] = loop until stopped or given up. */
+    val repeatCount: Int = KEEP_RINGING,
 ) {
     val intervalMs: Long get() = (hours * 60L + minutes) * 60_000L
 }
+
+/**
+ * `repeatCount` value meaning "loop the sound until Stop, or until [Settings.ringSeconds]".
+ * It is the default so that alarms created before repeat counts existed keep ringing exactly as
+ * they always did.
+ */
+const val KEEP_RINGING = 0
 
 /**
  * The fixed grid: slots are `anchorAt + n * interval`, so dismissing an alarm late never shifts
@@ -55,6 +64,7 @@ private fun IntervalAlarm.toJson(): JSONObject = JSONObject()
     .put("enabled", enabled)
     .put("anchorAt", anchorAt)
     .put("soundUri", soundUri ?: JSONObject.NULL)
+    .put("repeatCount", repeatCount)
 
 private fun intervalAlarmFrom(o: JSONObject) = IntervalAlarm(
     id = o.getInt("id"),
@@ -64,6 +74,7 @@ private fun intervalAlarmFrom(o: JSONObject) = IntervalAlarm(
     enabled = o.optBoolean("enabled", false),
     anchorAt = o.optLong("anchorAt", 0L),
     soundUri = o.optStringOrNull("soundUri"),
+    repeatCount = o.optInt("repeatCount", KEEP_RINGING),
 )
 
 // ---------------------------------------------------------------------------------------------
@@ -113,6 +124,8 @@ data class TimerItem(
     /** What is left on the clock while paused. */
     val remainingMs: Long,
     val soundUri: String? = null,
+    /** Same meaning as [IntervalAlarm.repeatCount]. */
+    val repeatCount: Int = KEEP_RINGING,
 )
 
 fun TimerItem.remainingAt(now: Long): Long =
@@ -126,6 +139,7 @@ private fun TimerItem.toJson(): JSONObject = JSONObject()
     .put("endsAt", endsAt)
     .put("remainingMs", remainingMs)
     .put("soundUri", soundUri ?: JSONObject.NULL)
+    .put("repeatCount", repeatCount)
 
 private fun timerFrom(o: JSONObject) = TimerItem(
     id = o.getInt("id"),
@@ -135,6 +149,7 @@ private fun timerFrom(o: JSONObject) = TimerItem(
     endsAt = o.optLong("endsAt", 0L),
     remainingMs = o.optLong("remainingMs", 0L),
     soundUri = o.optStringOrNull("soundUri"),
+    repeatCount = o.optInt("repeatCount", KEEP_RINGING),
 )
 
 // ---------------------------------------------------------------------------------------------
@@ -143,27 +158,61 @@ private fun timerFrom(o: JSONObject) = TimerItem(
 
 data class Settings(
     val snoozeMinutes: Int = 10,
-    /** How long an ignored alarm rings before it gives up. */
+    /**
+     * How long a [KEEP_RINGING] alarm rings before it gives up. Alarms set to play a fixed number
+     * of times end when the count is reached instead.
+     */
     val ringSeconds: Int = 300,
     /** Sleep length, stored in whole minutes so the 8.5 h default is exact. 8.5 h = 510. */
     val sleepMinutes: Int = 510,
     /** Wall-clock ms sleep mode ends. 0 = not sleeping. */
     val sleepUntil: Long = 0L,
+    /**
+     * An alarm that ends without Stop or Snooze being pressed comes back after this many minutes.
+     * 0 = never come back. Omar asked for 5 (2026-10-06) — deliberately shorter than the snooze.
+     */
+    val comebackMinutes: Int = 5,
+    /** ...at most this many times in a row before it gives up until its next scheduled ring. */
+    val comebackTimes: Int = 3,
+    /** 0 = follow the phone, 1 = always light, 2 = always dark. */
+    val themeMode: Int = THEME_SYSTEM,
+    /** Android 12+: take the app's colours from the wallpaper instead of the BroTimer palette. */
+    val wallpaperColors: Boolean = false,
+    /**
+     * Vibrate while ringing. Omar asked for an off switch (2026-10-06, "it is annoying").
+     * Ignored — the phone vibrates anyway — when the sound fails to play, so an alarm is never
+     * completely silent.
+     */
+    val vibrate: Boolean = true,
 ) {
     fun isSleeping(now: Long): Boolean = sleepUntil > now
 }
+
+const val THEME_SYSTEM = 0
+const val THEME_LIGHT = 1
+const val THEME_DARK = 2
 
 private fun Settings.toJson(): JSONObject = JSONObject()
     .put("snoozeMinutes", snoozeMinutes)
     .put("ringSeconds", ringSeconds)
     .put("sleepMinutes", sleepMinutes)
     .put("sleepUntil", sleepUntil)
+    .put("comebackMinutes", comebackMinutes)
+    .put("comebackTimes", comebackTimes)
+    .put("themeMode", themeMode)
+    .put("wallpaperColors", wallpaperColors)
+    .put("vibrate", vibrate)
 
 private fun settingsFrom(o: JSONObject) = Settings(
     snoozeMinutes = o.optInt("snoozeMinutes", 10),
     ringSeconds = o.optInt("ringSeconds", 300),
     sleepMinutes = o.optInt("sleepMinutes", 510),
     sleepUntil = o.optLong("sleepUntil", 0L),
+    comebackMinutes = o.optInt("comebackMinutes", 5),
+    comebackTimes = o.optInt("comebackTimes", 3),
+    themeMode = o.optInt("themeMode", THEME_SYSTEM),
+    wallpaperColors = o.optBoolean("wallpaperColors", false),
+    vibrate = o.optBoolean("vibrate", true),
 )
 
 // ---------------------------------------------------------------------------------------------

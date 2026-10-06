@@ -30,6 +30,8 @@ object Scheduler {
 
     const val EXTRA_TYPE = "com.brotimer.extra.TYPE"
     const val EXTRA_ID = "com.brotimer.extra.ID"
+    /** On a [TYPE_SNOOZE]: 0 = a snooze Omar pressed, n = the nth automatic come-back. */
+    const val EXTRA_ATTEMPT = "com.brotimer.extra.ATTEMPT"
 
     /** A repeating interval alarm reached a grid slot. */
     const val TYPE_INTERVAL = "interval"
@@ -57,14 +59,22 @@ object Scheduler {
     // PendingIntent construction
     // ---------------------------------------------------------------------------------------
 
-    private fun firePendingIntent(context: Context, kind: Int, id: Int, type: String): PendingIntent {
+    private fun firePendingIntent(
+        context: Context,
+        kind: Int,
+        id: Int,
+        type: String,
+        attempt: Int = 0,
+    ): PendingIntent {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             action = ACTION_FIRE
             // Extras are ignored by Intent.filterEquals, so the data Uri is what actually keeps
-            // these PendingIntents distinct from one another.
+            // these PendingIntents distinct from one another. It also means FLAG_UPDATE_CURRENT
+            // below refreshes EXTRA_ATTEMPT on an already-armed snooze.
             data = Uri.parse("brotimer://fire/$kind/$id")
             putExtra(EXTRA_TYPE, type)
             putExtra(EXTRA_ID, id)
+            putExtra(EXTRA_ATTEMPT, attempt)
         }
         return PendingIntent.getBroadcast(
             context,
@@ -144,10 +154,16 @@ object Scheduler {
     fun cancelTimer(context: Context, id: Int) =
         disarm(context, firePendingIntent(context, KIND_TIMER, id, TYPE_TIMER))
 
-    /** A snooze is a one-off extra ring. It deliberately does **not** move the interval grid. */
-    fun scheduleSnooze(context: Context, id: Int, triggerAt: Long) {
-        armExact(context, triggerAt, firePendingIntent(context, KIND_SNOOZE, id, TYPE_SNOOZE))
-        Log.i(TAG, "snooze for $id at $triggerAt")
+    /**
+     * A snooze is a one-off extra ring. It deliberately does **not** move the interval grid.
+     *
+     * Automatic come-backs (an alarm nobody answered) reuse this same slot with [attempt] > 0, so
+     * a manual snooze and a come-back for the same alarm can never both be pending — the later one
+     * replaces the earlier.
+     */
+    fun scheduleSnooze(context: Context, id: Int, triggerAt: Long, attempt: Int = 0) {
+        armExact(context, triggerAt, firePendingIntent(context, KIND_SNOOZE, id, TYPE_SNOOZE, attempt))
+        Log.i(TAG, "snooze for $id at $triggerAt (attempt $attempt)")
     }
 
     fun cancelSnooze(context: Context, id: Int) =
@@ -179,6 +195,10 @@ object Scheduler {
                 scheduleInterval(context, alarm, now)
             } else {
                 cancelInterval(context, alarm.id)
+                // A pending snooze or come-back belongs to the alarm: switching the alarm off, or
+                // going to sleep, silences that too. (Timer snoozes are left alone on purpose —
+                // a finished timer is "not running" exactly while its come-back is pending.)
+                cancelSnooze(context, alarm.id)
             }
         }
 

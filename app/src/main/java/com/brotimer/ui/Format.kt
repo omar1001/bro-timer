@@ -54,6 +54,52 @@ fun formatInterval(hours: Int, minutes: Int): String = when {
     else -> "not set"
 }
 
+private val dateFormat = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault())
+
+/** `Monday, 6 October` */
+fun formatDate(epochMs: Long): String = dateFormat.format(Date(epochMs))
+
+/** `0:03` / `1:20` / `1:02:03` — the length of one play of a sound. Empty when unknown. */
+fun formatClip(ms: Long): String {
+    if (ms <= 0L) return ""
+    val total = (ms + 500L) / 1000L
+    val h = total / 3600
+    val m = (total / 60) % 60
+    val s = total % 60
+    return if (h > 0) {
+        String.format(Locale.US, "%d:%02d:%02d", h, m, s)
+    } else {
+        String.format(Locale.US, "%d:%02d", m, s)
+    }
+}
+
+/**
+ * `2.3 s` / `21 s` / `1:20` — one play of a sound, precise enough that "10 × 2.3 s ≈ 23 s" adds
+ * up. (`formatClip` rounds 2.3 s to `0:02`, and "10 × 0:02 — about 23 s" reads as bad maths.)
+ */
+fun formatClipShort(ms: Long): String {
+    if (ms <= 0L) return ""
+    return when {
+        ms < 10_000L -> String.format(Locale.US, "%.1f s", ms / 1000.0)
+        ms < 60_000L -> "${(ms + 500L) / 1000L} s"
+        else -> formatClip(ms)
+    }
+}
+
+/** `about 30 s` / `about 3 min` / `about 1 h 5 min` — a rough total, e.g. 10 plays × 3 s. */
+fun formatAbout(ms: Long): String {
+    if (ms <= 0L) return ""
+    val s = (ms + 500L) / 1000L
+    return when {
+        s < 60 -> "about $s s"
+        s < 3600 -> "about ${(s + 30) / 60} min"
+        else -> {
+            val m = (s + 30) / 60
+            if (m % 60 == 0L) "about ${m / 60} h" else "about ${m / 60} h ${m % 60} min"
+        }
+    }
+}
+
 /** `in 1 h 12 min` / `in 45 min` / `in 20 s` — how long until something happens. */
 fun formatUntil(deltaMs: Long): String {
     if (deltaMs <= 0L) return "now"
