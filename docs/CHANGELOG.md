@@ -32,11 +32,18 @@ with `C:\Users\VENOM TECH\.android\debug.keystore` (certificate `CN=Android Debu
 future APK can update an existing install**; everyone, Omar included, would have to uninstall first
 and lose their alarms. It is not in the repo and must not be. Back it up somewhere private.
 
-### Not hardware-verified
+### Installed on Omar's phone afterwards
 
-The phone was unplugged by the time v1.1 was built, so v1.1 itself was not installed on it. Its
-only differences from the build tested on the phone the same day are the version numbers and the
-Setup version line. The release notes say so.
+When the phone was reconnected, the **publicly downloaded release file** (SHA-256 re-checked) was
+installed over 1.0 with `adb install -r`. Before/after evidence: his data file was
+**byte-identical**, and his four scheduled alarms (one interval alarm, three running timers) were
+still scheduled at the **same millisecond** — before the app was even opened, confirming that
+`AlarmManager` keeps a package's alarms across an update. No crash. The phone was locked, so the
+"BroTimer 1.1" line in Setup was not seen on screen.
+
+Seen in his data: he had already used the **Ringtones** button himself (a timer set to "Breeze",
+stored as `content://media/internal/audio/media/7?title=Breeze&canonical=1`) — the canonical-URI
+form that `SoundLibrary.titleOf` reads the title from.
 
 ---
 

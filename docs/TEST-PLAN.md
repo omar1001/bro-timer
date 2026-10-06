@@ -16,7 +16,8 @@ Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-0
 | ✅ | `.\build.ps1` produces the APK; a clean build has **0 warnings** |
 | ✅ | `.\install.ps1` succeeds (falls back to `pm install` past HyperOS's block when needed) |
 | ✅ | App launches with no crash; saved data from the previous version loads unchanged |
-| ⬜ | **v1.1 from the GitHub Release** installs over the copy on the phone and keeps the alarms; Setup shows "BroTimer 1.1" |
+| ✅ | **v1.1 from the GitHub Release** (the publicly downloaded file, SHA-256 checked) installs over 1.0: data byte-identical, all 4 scheduled alarms kept to the millisecond, no crash |
+| ⬜ | Setup shows "BroTimer 1.1" — the phone was locked when checked |
 
 ## 1. Permissions
 
@@ -59,7 +60,8 @@ Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-0
 | ✅ | ▶ preview plays; delete a sound → confirm → gone; alarms using it fall back to the default |
 | ✅ | **Share → BroTimer** imports the file and offers to assign it to an alarm or timer |
 | ⬜ | **Browse files** (system file picker) import |
-| ⬜ | **Ringtones** (system picker) choice plays at ring time |
+| ✅ | **Ringtones** (system picker): Omar picked "Breeze" for a timer himself; stored as a canonical URI (`…/media/7?title=Breeze&canonical=1`) |
+| ⬜ | …and that ringtone actually plays when the timer rings |
 | ⬜ | **A real Zedge download** — Omar's actual use case |
 
 ## 5. Vibration, sleep, look
