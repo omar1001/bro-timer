@@ -33,7 +33,7 @@ Any short audio clip works: a word from Zedge, a voice note from WhatsApp, a rec
 
 ## Features
 
-| | |
+| Feature | What it does |
 |---|---|
 | **Interval alarms** | Every *X* hours and minutes, each with its own text and an on/off switch. They run on a fixed grid — dismissing late never pushes the next one later. |
 | **Play it *N* times** | Choose how many times the sound plays, from 1 to 99 — or keep ringing until you stop it. The editor shows the total: *10 × 2.8 s — about 28 s*. |
