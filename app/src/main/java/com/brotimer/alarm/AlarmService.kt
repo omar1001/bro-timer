@@ -425,20 +425,30 @@ class AlarmService : Service() {
      * Only while the phone is awake, unlocked and in use: that is exactly when Android shows the
      * alarm as a banner that slides away. Asleep or locked, the full-screen alarm shows instead.
      */
-    private fun shouldFloat(): Boolean {
-        if (!Store.settings.value.stayOnScreen || !overlay.canShow()) return false
-        val awake = getSystemService(PowerManager::class.java)?.isInteractive == true
-        val locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true
-        return awake && !locked
+    private fun floatBlocker(): String? = when {
+        !Store.settings.value.stayOnScreen -> "switched off"
+        !overlay.canShow() -> "no \"Display over other apps\" permission"
+        getSystemService(PowerManager::class.java)?.isInteractive != true -> "screen off, full-screen alarm instead"
+        getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true -> "phone locked, full-screen alarm instead"
+        else -> null
     }
 
     private fun showFloatingCardIfInUse() {
         val r = ring ?: return
-        if (shouldFloat()) overlay.show(r.label, statusText(r), Store.settings.value.snoozeMinutes)
+        val blocker = floatBlocker()
+        if (blocker != null) {
+            Log.i(Scheduler.TAG, "always-on card not shown for ${r.id}: $blocker")
+            return
+        }
+        overlay.show(r.label, statusText(r), Store.settings.value.snoozeMinutes)
+        if (overlay.isShowing) Log.i(Scheduler.TAG, "always-on card shown for ${r.id}")
     }
 
     /** Called by [AlarmActivity] while it is on screen: its own buttons are where the card sits. */
-    internal fun hideFloatingCard() = overlay.hide()
+    internal fun hideFloatingCard() {
+        if (overlay.isShowing) Log.i(Scheduler.TAG, "always-on card hidden: alarm screen is up")
+        overlay.hide()
+    }
 
     /** Called by [AlarmActivity] when you leave it while the alarm is still ringing. */
     internal fun restoreFloatingCard() = showFloatingCardIfInUse()

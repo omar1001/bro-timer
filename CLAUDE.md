@@ -108,7 +108,7 @@ Full dated entries live in [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — the rows
 
 | Date | Headline | Read before touching |
 |---|---|---|
-| 2026-10-06 | v1.2 "Always on display": Snooze/Stop card floats over other apps while ringing on an unlocked phone; "Always on" chip with a red dot on the main screen | `alarm/RingOverlay`, `AlarmService.shouldFloat`, `AlarmActivity` onResume/onStop |
+| 2026-10-06 | v1.2 "Always on display": Snooze/Stop card floats over other apps while ringing on an unlocked phone; "Always on" chip with a red dot on the main screen | `alarm/RingOverlay`, `AlarmService.floatBlocker`, `AlarmActivity` onResume/onStop |
 | 2026-10-06 | v1.1 released on GitHub with the debug-signed APK; version shown in Setup; README download badge | Releasing, signing, `versionCode` |
 | 2026-10-06 | Play a sound N times, come back if unanswered, own sounds (Zedge/phone audio/share, copied in), vibration switch, visual redesign; lock-screen alarm verified with PIN | `alarm/AlarmService`, `alarm/AlarmActivity`, `data/SoundLibrary`, any sound or ring-ending logic, `FullScreenDialog` |
 | 2026-09-04 | Initial build: interval alarms on a fixed grid, sleep mode, stopwatches, timers, borrowed toolchain | Everything — this is the whole app |

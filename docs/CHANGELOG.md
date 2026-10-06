@@ -28,7 +28,7 @@ over all apps, or one inside the app), he chose **inside the app**.
   Views, not Compose (a Compose view in a service-owned window would need its own lifecycle owners).
   Not focusable and not touch-modal, so Back, the keyboard and the rest of the screen keep working.
 - **`AlarmService`** — shows the card when a ring starts **only if** the setting is on, the
-  permission is granted, the screen is on **and** the phone is unlocked (`shouldFloat()`); asleep or
+  permission is granted, the screen is on **and** the phone is unlocked (`floatBlocker()`, which also logs *why* the card was not shown); asleep or
   locked, the full-screen alarm shows instead (overlays sit below the lock screen anyway). The card
   is updated with each play, removed by every kind of ending. `openAlarmScreen()` starts the
   activity *before* removing the card: our visible window is what allows an activity start from the
