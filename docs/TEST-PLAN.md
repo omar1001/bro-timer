@@ -49,6 +49,7 @@ Phone: Xiaomi `23117RA68G`, Android 16 / API 36, HyperOS `V816`. Verified 2026-0
 | ✅ | Snooze on the card → `snooze … (attempt 0)`, `ended: SNOOZED` |
 | ✅ | Tapping the card's text opens the full alarm screen, and the card is gone while it is up |
 | ✅ | Ring while **locked** → full-screen alarm only (the card is skipped and logs why) |
+| ⬜ | The **opaque** card (v1.2 release build) seen on screen — and a clean screenshot of it over BroTimer for the README |
 
 ## 3. Play it N times + come back if missed
 

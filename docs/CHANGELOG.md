@@ -5,6 +5,24 @@ Newest first.
 
 ---
 
+## 2026-10-06 — v1.2 published as a GitHub Release
+
+Omar approved publishing 1.2 ("ok"). Tag `v1.2` → `0511d6d`, asset `BroTimer-1.2.apk`
+(9,185,219 bytes, SHA-256 `8e9811bb336bdeb66a2a4a4bc5b1518056783a6f9993c11e3ecda02f7e6ab51e`).
+
+- **Provenance:** the released file is **byte-identical to the APK installed on Omar's phone**
+  (pulled back with `pm path` + `adb pull` and hashed), and the public download was re-hashed after
+  publishing. No app code changed between that build and the tag.
+- **Last change before release:** the Always on card became fully opaque (`0xF2…` → `0xFF…`) after a
+  test screenshot showed home-screen icons bleeding through the Snooze button. That build launched
+  without a crash with his data unchanged; the card itself was ring-tested on the build just before
+  (identical except the alpha byte) — the release notes say so.
+- **README** gained an "Always on display" feature row and a note on the optional permissions. No
+  screenshot of the card yet: every capture so far was over Omar's home screen (his apps visible),
+  and the phone locked before a clean one over BroTimer's own Setup screen could be taken.
+
+---
+
 ## 2026-10-06 — "Always on display": Snooze/Stop stay on screen while ringing (v1.2)
 
 ### What Omar asked for
